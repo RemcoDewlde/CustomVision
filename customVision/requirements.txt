@@ -1,0 +1,6 @@
+tensorflow
+pillow
+numpy
+opencv-python-headless
+pafy
+youtube_dl
