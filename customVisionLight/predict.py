@@ -6,7 +6,6 @@
 import sys
 import tensorflow as tf
 import numpy as np
-from PIL import Image
 from object_detection import ObjectDetection
 import cv2
 import pafy as pafy
@@ -38,6 +37,9 @@ class TFLiteObjectDetection(ObjectDetection):
         return self.interpreter.get_tensor(self.output_index)[0]
 
 
+def nothing():
+    pass
+
 def main():
     url = 'https://youtu.be/XAXwmMu8otM'
     vlink = pafy.new(url)
@@ -51,7 +53,9 @@ def main():
 
     od_model = TFLiteObjectDetection(MODEL_FILENAME, labels)
 
+    cv2.namedWindow('frame')
     cap = cv2.VideoCapture(play.url)
+    cv2.createTrackbar('%', 'frame', 0, 100, nothing)
 
     while True:
         # Capture frame-by-frame
@@ -64,7 +68,8 @@ def main():
 
             for prediction in predictions:
                 # check if probability is higher than 25%
-                if prediction["probability"] > 0.25:
+                p = int(cv2.getTrackbarPos('%','frame')) / 100
+                if prediction["probability"] > p:
                     # Start point of the rectangle (top left)
                     start_point = (
                         int(prediction["boundingBox"]["left"] * width), int(prediction["boundingBox"]["top"] * height))
