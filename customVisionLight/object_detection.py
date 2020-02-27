@@ -127,13 +127,6 @@ class ObjectDetection(object):
         return self.postprocess(prediction_outputs)
 
     def preprocess(self, image):
-        image = image.convert("RGB") if image.mode != "RGB" else image
-        ratio = math.sqrt(self.DEFAULT_INPUT_SIZE / image.width / image.height)
-        new_width = int(image.width * ratio)
-        new_height = int(image.height * ratio)
-        new_width = 32 * round(new_width / 32);
-        new_height = 32 * round(new_height / 32);
-        image = image.resize((new_width, new_height))
         return image
 
     def predict(self, preprocessed_inputs):
