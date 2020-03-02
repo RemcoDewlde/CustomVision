@@ -1,12 +1,12 @@
 import sys
 import tensorflow as tf
 import numpy as np
-from PIL import Image
 from object_detection import ObjectDetection
 import cv2
 import pafy as pafy
+from timer import Timer
 
-MODEL_FILENAME = 'model_it4.pb'
+MODEL_FILENAME = 'model.pb'
 LABELS_FILENAME = 'labels.txt'
 
 
@@ -29,9 +29,10 @@ class TFObjectDetection(ObjectDetection):
             return outputs[0]
 
 
-def main():
-    # Load youtube Video
-    url = 'https://youtu.be/XAXwmMu8otM'
+def main(vidId):
+    # Load youtube Vided
+    url = "https://youtu.be/" + vidId
+    # url = 'https://youtu.be/XAXwmMu8otM'
     # url = 'https://youtu.be/BRMK77NUsyU'
     vlink = pafy.new(url)
     play = vlink.getbest()
@@ -57,7 +58,11 @@ def main():
         ret, frame = cap.read()
         height, width, channel = frame.shape
 
+        t = Timer()
+        t.start()
         predictions = od_model.predict_image(frame)
+        t.stop()
+
         for prediction in predictions:
             # check if probability is higher than 25%
             if prediction["probability"] > 0.25:
@@ -69,11 +74,17 @@ def main():
                 end_point = (
                     int(prediction["boundingBox"]["left"] * width) + int(prediction["boundingBox"]["width"] * width),
                     int(prediction["boundingBox"]["top"] * height) + int(prediction["boundingBox"]["height"] * height))
+
+                # Get the color associated with the tagId
                 color = colors[prediction["tagId"]]
                 thickness = 2
                 probability = str(round(prediction["probability"], 2))
                 probability = probability[2:]
+
+                # Draw a rectangle around the detected object
                 frame = cv2.rectangle(frame, start_point, end_point, color, thickness)
+
+                # Show the label associated with the object
                 cv2.putText(frame, str(prediction["tagName"]) + " | Probability:" + probability + "%",
                             (int(prediction["boundingBox"]["left"] * width),
                              int(prediction["boundingBox"]["top"] * height) - 5),
@@ -90,4 +101,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) <= 1:
+        print('USAGE: {} Youtube video id'.format(sys.argv[0]))
+    else:
+        main(sys.argv[1])
