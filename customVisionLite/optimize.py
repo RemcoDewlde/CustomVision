@@ -68,12 +68,9 @@ def main(vid):
     video = get_vid(vid)
     labels = load_labels()
     colors = gen_colors(labels)
-    interpreter = get_interpreter()
+    # interpreter = get_interpreter()
 
-    input_index = interpreter[1]
-    output_index = interpreter[2]
-
-    interpreter = interpreter[0]
+    interpreter, input_index, output_index = get_interpreter()
 
     od_model = TFLiteObjectDetection(MODEL_FILENAME, labels)
 
