@@ -6,6 +6,7 @@ import pafy
 from classes.object_detection import ObjectDetection
 from classes.box import Box
 
+# Get Model and label filepath
 MODEL_FILENAME = 'model/model.pb'
 LABELS_FILENAME = 'model/labels.txt'
 
@@ -40,6 +41,7 @@ def load_graph_def():
 
 
 def get_tf_graph(graph_def):
+    """ Generates a  Tensorflow graph"""
     graph = tf.compat.v1.Graph()
     with graph.as_default():
         input_data = tf.compat.v1.placeholder(tf.float32, [1, None, None, 3], name='Placeholder')
