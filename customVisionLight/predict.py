@@ -3,10 +3,9 @@
 # 2. resize network input size to (w', h')
 # 3. pass the image to network and do inference
 # (4. if inference speed is too slow for you, try to make w' x h' smaller, which is defined with DEFAULT_INPUT_SIZE (in object_detection.py or ObjectDetection.cs))
-import sys
 import tensorflow as tf
 import numpy as np
-from object_detection import ObjectDetection
+from classes.object_detection import ObjectDetection
 import cv2
 import pafy as pafy
 
@@ -32,6 +31,7 @@ class TFLiteObjectDetection(ObjectDetection):
         self.interpreter.resize_tensor_input(self.input_index, inputs.shape)
         self.interpreter.allocate_tensors()
 
+        print(inputs.shape)
         self.interpreter.set_tensor(self.input_index, inputs)
         self.interpreter.invoke()
         return self.interpreter.get_tensor(self.output_index)[0]
@@ -39,6 +39,7 @@ class TFLiteObjectDetection(ObjectDetection):
 
 def nothing():
     pass
+
 
 def main():
     url = 'https://youtu.be/XAXwmMu8otM'
@@ -61,40 +62,38 @@ def main():
         # Capture frame-by-frame
         ret, frame = cap.read()
         height, width, channel = frame.shape
-        count = cap.get(int(cv2.CAP_PROP_POS_FRAMES))
 
-        if(count % 2) == 0:
-            predictions = od_model.predict_image(frame)
+        predictions = od_model.predict_image(frame)
 
-            for prediction in predictions:
-                # check if probability is higher than 25%
-                p = int(cv2.getTrackbarPos('%','frame')) / 100
-                if prediction["probability"] > p:
-                    # Start point of the rectangle (top left)
-                    start_point = (
-                        int(prediction["boundingBox"]["left"] * width), int(prediction["boundingBox"]["top"] * height))
+        for prediction in predictions:
+            # check if probability is higher than 25%
+            p = int(cv2.getTrackbarPos('%', 'frame')) / 100
+            if prediction["probability"] > p:
+                # Start point of the rectangle (top left)
+                start_point = (
+                    int(prediction["boundingBox"]["left"] * width), int(prediction["boundingBox"]["top"] * height))
 
-                    # end point of of the rectangle (bottom right)
-                    end_point = (
-                        int(prediction["boundingBox"]["left"] * width) + int(prediction["boundingBox"]["width"] * width),
-                        int(prediction["boundingBox"]["top"] * height) + int(prediction["boundingBox"]["height"] * height))
+                # end point of of the rectangle (bottom right)
+                end_point = (
+                    int(prediction["boundingBox"]["left"] * width) + int(prediction["boundingBox"]["width"] * width),
+                    int(prediction["boundingBox"]["top"] * height) + int(prediction["boundingBox"]["height"] * height))
 
-                    # Get the color associated with the tagId
-                    color = colors[prediction["tagId"]]
-                    thickness = 2
-                    probability = str(round(prediction["probability"], 2))
-                    probability = probability[2:]
+                # Get the color associated with the tagId
+                color = colors[prediction["tagId"]]
+                thickness = 2
+                probability = str(round(prediction["probability"], 2))
+                probability = probability[2:]
 
-                    # Draw a rectangle around the detected object
-                    frame = cv2.rectangle(frame, start_point, end_point, color, thickness)
+                # Draw a rectangle around the detected object
+                frame = cv2.rectangle(frame, start_point, end_point, color, thickness)
 
-                    # Show the label associated with the object
-                    cv2.putText(frame, str(prediction["tagName"]) + " | Probability:" + probability + "%",
-                                (int(prediction["boundingBox"]["left"] * width),
-                                 int(prediction["boundingBox"]["top"] * height) - 5),
-                                cv2.FONT_HERSHEY_PLAIN, 1.5, (255, 255, 255), 2)
-             # Display the resulting frame
-            cv2.imshow('frame', frame)
+                # Show the label associated with the object
+                cv2.putText(frame, str(prediction["tagName"]) + " | Probability:" + probability + "%",
+                            (int(prediction["boundingBox"]["left"] * width),
+                             int(prediction["boundingBox"]["top"] * height) - 5),
+                            cv2.FONT_HERSHEY_PLAIN, 1.5, (255, 255, 255), 2)
+        # Display the resulting frame
+        cv2.imshow('frame', frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break

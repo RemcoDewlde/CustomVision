@@ -3,12 +3,11 @@ import cv2
 import numpy as np
 import tensorflow as tf
 import pafy
-from object_detection import ObjectDetection
-from timer import Timer
-import json
+from classes.object_detection import ObjectDetection
+from classes.box import Box
 
-MODEL_FILENAME = 'model.pb'
-LABELS_FILENAME = 'labels.txt'
+MODEL_FILENAME = 'model/model.pb'
+LABELS_FILENAME = 'model/labels.txt'
 
 
 def get_vid(vid_id):
@@ -53,7 +52,7 @@ def make_session(graph):
     return tf.compat.v1.Session(graph=graph)
 
 
-def predict(graph, sess, frame):
+def predict(sess, frame):
     inputs = np.array(frame, dtype=np.float)[:, :, (2, 1, 0)]  # RGB -> BGR
     output_tensor = sess.graph.get_tensor_by_name('model_outputs:0')
     outputs = sess.run(output_tensor, {'Placeholder:0': inputs[np.newaxis, ...]})
@@ -78,23 +77,13 @@ def main(vid):
         ret, frame = cap.read()
         height, width, channel = frame.shape
 
-        result = predict(graph, sess, frame)
+        result = predict(sess, frame)
         predictions = od_model.postprocess(result)
-
-        y = json.dumps(predictions)
-        print(y)
 
         for prediction in predictions:
             # check if probability is higher than 25%
             if prediction["probability"] > 0.25:
-                # Start point of the rectangle (top left)
-                start_point = (
-                    int(prediction["boundingBox"]["left"] * width), int(prediction["boundingBox"]["top"] * height))
-
-                # end point of of the rectangle (bottom right)
-                end_point = (
-                    int(prediction["boundingBox"]["left"] * width) + int(prediction["boundingBox"]["width"] * width),
-                    int(prediction["boundingBox"]["top"] * height) + int(prediction["boundingBox"]["height"] * height))
+                box = Box(prediction, frame)
 
                 # Get the color associated with the tagId
                 color = colors[prediction["tagId"]]
@@ -103,14 +92,13 @@ def main(vid):
                 probability = probability[2:]
 
                 # Draw a rectangle around the detected object
-                frame = cv2.rectangle(frame, start_point, end_point, color, thickness)
+                frame = cv2.rectangle(frame, box.get_start_point(), box.get_end_point(), color, thickness)
 
                 # Show the label associated with the object
                 cv2.putText(frame, str(prediction["tagName"]) + " | Probability:" + probability + "%",
                             (int(prediction["boundingBox"]["left"] * width),
                              int(prediction["boundingBox"]["top"] * height) - 5),
                             cv2.FONT_HERSHEY_PLAIN, 1.5, (255, 255, 255), 2)
-
 
         # Display the resulting frame
         cv2.imshow('frame', frame)

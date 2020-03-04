@@ -1,13 +1,14 @@
 import sys
 import tensorflow as tf
 import numpy as np
-from object_detection import ObjectDetection
+from classes.object_detection import ObjectDetection
 import cv2
 import pafy as pafy
-from timer import Timer
+from classes.timer import Timer
+from classes.box import Box
 
-MODEL_FILENAME = 'model.pb'
-LABELS_FILENAME = 'labels.txt'
+MODEL_FILENAME = 'model/model.pb'
+LABELS_FILENAME = 'model/labels.txt'
 
 
 class TFObjectDetection(ObjectDetection):
@@ -66,14 +67,7 @@ def main(vidId):
         for prediction in predictions:
             # check if probability is higher than 25%
             if prediction["probability"] > 0.25:
-                # Start point of the rectangle (top left)
-                start_point = (
-                    int(prediction["boundingBox"]["left"] * width), int(prediction["boundingBox"]["top"] * height))
-
-                # end point of of the rectangle (bottom right)
-                end_point = (
-                    int(prediction["boundingBox"]["left"] * width) + int(prediction["boundingBox"]["width"] * width),
-                    int(prediction["boundingBox"]["top"] * height) + int(prediction["boundingBox"]["height"] * height))
+                box = Box(prediction, frame)
 
                 # Get the color associated with the tagId
                 color = colors[prediction["tagId"]]
@@ -81,8 +75,8 @@ def main(vidId):
                 probability = str(round(prediction["probability"], 2))
                 probability = probability[2:]
 
-                # Draw a rectangle around the detected object
-                frame = cv2.rectangle(frame, start_point, end_point, color, thickness)
+                # # Draw a rectangle around the detected object
+                frame = cv2.rectangle(frame, box.get_start_point(), box.get_end_point(), color, thickness)
 
                 # Show the label associated with the object
                 cv2.putText(frame, str(prediction["tagName"]) + " | Probability:" + probability + "%",
