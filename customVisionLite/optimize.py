@@ -6,8 +6,8 @@ import tensorflow as tf
 from classes.object_detection import ObjectDetection
 from classes.box import Box
 
-MODEL_FILENAME = 'model.tflite'
-LABELS_FILENAME = 'labels.txt'
+MODEL_FILENAME = 'model/model.tflite'
+LABELS_FILENAME = 'model/labels.txt'
 
 
 class TFLiteObjectDetection(ObjectDetection):

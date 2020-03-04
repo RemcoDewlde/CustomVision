@@ -9,8 +9,8 @@ from classes.object_detection import ObjectDetection
 import cv2
 import pafy as pafy
 
-MODEL_FILENAME = 'model.tflite'
-LABELS_FILENAME = 'labels.txt'
+MODEL_FILENAME = 'model/model.tflite'
+LABELS_FILENAME = 'model/labels.txt'
 
 
 class TFLiteObjectDetection(ObjectDetection):
