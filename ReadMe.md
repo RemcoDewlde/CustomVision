@@ -1,3 +1,5 @@
+[![HitCount](http://hits.dwyl.com/remcodewlde/CustomVision.svg)](http://hits.dwyl.com/remcodewlde/CustomVision)
+
 # Custom Vision Demo
 
 In this reposetory are two projects, one for the normal sized tensorflow protobuf file from azure custom vision, the other is the lite version of the same model.
